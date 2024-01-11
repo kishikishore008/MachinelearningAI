@@ -1,0 +1,57 @@
+import cv2
+import numpy as np
+
+# Set the image path
+image_path = r'C:/DEPARTMENT/img/as.jpg'  # Replace 'image_name.jpg' with your image file name
+
+# Load the image
+image = cv2.imread(image_path)
+
+# Check if the image is loaded properly
+if image is None:
+    print("Error: Image not loaded. Check the file path.")
+else:
+    # a) Image Resizing
+    resized_image = cv2.resize(image, (300, 300))  # Set the desired width and height
+
+    # b) Blurring of Image
+    blurred_image = cv2.GaussianBlur(image, (5, 5), 0)  # Using a 5x5 Gaussian kernel for blurring
+
+    # c) Grayscaling of image
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # d) Scaling and rotation
+    rescaled_image = cv2.resize(image, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)  # Scaling to half size
+    rotation_angle = 45  # Rotation angle
+    rows, cols = image.shape[:2]
+    rotation_matrix = cv2.getRotationMatrix2D((cols / 2, rows / 2), rotation_angle, 1)
+    rotated_image = cv2.warpAffine(image, rotation_matrix, (cols, rows))
+
+    # e) Edge Detection
+    edges = cv2.Canny(image, 100, 200)  # Using Canny edge detection with threshold values 100 and 200
+
+    # f) Segmentation using thresholding
+    _, thresholded_image = cv2.threshold(gray_image, 127, 255, cv2.THRESH_BINARY)
+
+    # g) Background subtraction (Using a dummy mask for illustration)
+    foreground_mask = np.zeros(image.shape[:2], dtype=np.uint8)  # Dummy black mask
+
+    # h) Morphological operations (Erosion and Dilation)
+    kernel = np.ones((3, 3), np.uint8)
+    erosion = cv2.erode(image, kernel, iterations=1)
+    dilation = cv2.dilate(image, kernel, iterations=1)
+
+    # Display the processed images
+    cv2.imshow('Resized Image', resized_image)
+    cv2.imshow('Blurred Image', blurred_image)
+    cv2.imshow('Grayscale Image', gray_image)
+    cv2.imshow('Rescaled Image', rescaled_image)
+    cv2.imshow('Rotated Image', rotated_image)
+    cv2.imshow('Edge Detection', edges)
+    cv2.imshow('Thresholded Image', thresholded_image)
+    cv2.imshow('Background Subtraction', foreground_mask)
+    cv2.imshow('Erosion', erosion)
+    cv2.imshow('Dilation', dilation)
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
