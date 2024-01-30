@@ -1,0 +1,186 @@
+// Creating the BRANCH table
+CREATE TABLE BRANCH (
+    Branchid NUMBER PRIMARY KEY,
+    Branchname VARCHAR2(50),
+    HOD VARCHAR2(50)
+);
+
+// Creating the STUDENT table
+CREATE TABLE STUDENT (
+    USN VARCHAR2(20) PRIMARY KEY,
+    Name VARCHAR2(50),
+    Address VARCHAR2(100),
+    Branchid NUMBER,
+    sem NUMBER,
+    FOREIGN KEY (Branchid) REFERENCES BRANCH(Branchid)
+);
+
+// Creating the AUTHOR table
+CREATE TABLE AUTHOR (
+    Authorid NUMBER PRIMARY KEY,
+    Authorname VARCHAR2(50),
+    Country VARCHAR2(50),
+    Age NUMBER
+);
+
+// Creating the BOOK table
+CREATE TABLE BOOK (
+    Bookid NUMBER PRIMARY KEY,
+    Bookname VARCHAR2(100),
+    Authorid NUMBER,
+    Publisher VARCHAR2(50),
+    Branchid NUMBER,
+    FOREIGN KEY (Authorid) REFERENCES AUTHOR(Authorid),
+    FOREIGN KEY (Branchid) REFERENCES BRANCH(Branchid)
+);
+
+// Creating the BORROW table
+CREATE TABLE BORROW (
+    USN VARCHAR2(20),
+    Bookid NUMBER,
+    BorrowedDate DATE,
+    FOREIGN KEY (USN) REFERENCES STUDENT(USN),
+    FOREIGN KEY (Bookid) REFERENCES BOOK(Bookid)
+);
+
+PERFORMING OPERATIONS 
+
+B1:
+// Viewing all schemas (databases)
+SELECT username FROM all_users;
+
+// Creating a new schema (database)
+CREATE USER your_username IDENTIFIED BY your_password;
+
+// Grant necessary privileges to the user
+GRANT CONNECT, RESOURCE TO your_username;
+
+// Connecting to the new schema
+CONNECT your_username/your_password;
+
+// Viewing all tables in the schema
+SELECT table_name FROM all_tables;
+
+// Creating tables (already provided in the previous code)
+
+// Inserting records
+INSERT INTO BRANCH VALUES (1, 'Computer Science', 'John Doe');
+INSERT INTO STUDENT VALUES ('123', 'Alice', '123 Main St', 1, 1);
+// Similar inserts for other tables
+
+// Updating records
+UPDATE STUDENT SET sem = 2 WHERE USN = '123';
+
+// Deleting records
+DELETE FROM BRANCH WHERE Branchid = 1;
+
+// Committing changes
+COMMIT;
+
+// Rolling back changes
+ROLLBACK;
+
+___________________________
+B2 EXP:  
+objective a : List the details of Students who are all studying in 2nd sem MCA. 
+SOL:
+SELECT s.USN, s.Name, s.Address, b.Branchname
+FROM STUDENT s
+JOIN BRANCH b ON s.Branchid = b.Branchid
+WHERE s.sem = 2 AND b.Branchname = 'MCA';
+
+OBJECTIVE b. List the students who have not borrowed any books:
+
+SOL:
+SELECT s.USN, s.Name, s.Address
+FROM STUDENT s
+LEFT JOIN BORROW b ON s.USN = b.USN
+WHERE b.USN IS NULL;
+______________________________
+
+LAB EXP B3:
+OBJECTIVE  a:Displa y   the   USN ,  Student   n ame,   B ranch_ name,   Book_ name ,  Autho r_n ame,Books- Borrowed -,Date of 2nd sem MCA Students who borrowed books.
+
+SOL:
+
+SELECT s.USN, s.Name AS Student_Name, br.Branchname, bk.Bookname, a.Authorname, bo.BorrowedDate
+FROM STUDENT s
+JOIN BRANCH br ON s.Branchid = br.Branchid
+JOIN BORROW bo ON s.USN = bo.USN
+JOIN BOOK bk ON bo.Bookid = bk.Bookid
+JOIN AUTHOR a ON bk.Authorid = a.Authorid
+WHERE s.sem = 2 AND br.Branchname = 'MCA';
+
+
+Obejctive b: 
+ Display the number of books written by each Author:
+
+SOL:
+
+SELECT a.Authorid, a.Authorname, COUNT(bk.Bookid) AS Number_of_Books
+FROM AUTHOR a
+LEFT JOIN BOOK bk ON a.Authorid = bk.Authorid
+GROUP BY a.Authorid, a.Authorname;
+
+___________________________________
+
+LAB EXP B4:
+
+Objective a:  Display the student details who borrowed  more  than two books.
+
+SOL:
+SELECT s.USN, s.Name AS Student_Name, COUNT(bo.Bookid) AS Num_Borrowed_Books
+FROM STUDENT s
+LEFT JOIN BORROW bo ON s.USN = bo.USN
+GROUP BY s.USN, s.Name
+HAVING COUNT(bo.Bookid) > 2;
+
+
+Objective  b.Display  the student details who  borrowed  books  of more than  one Author.
+
+SOL:
+
+SELECT s.USN, s.Name AS Student_Name, COUNT(DISTINCT bk.Authorid) AS Num_Distinct_Authors
+FROM STUDENT s
+JOIN BORROW bo ON s.USN = bo.USN
+JOIN BOOK bk ON bo.Bookid = bk.Bookid
+GROUP BY s.USN, s.Name
+HAVING COUNT(DISTINCT bk.Authorid) > 1;
+
+__________________________________
+
+LAB EXP B5:
+
+Objective a: .Display the Book names in descendj11g order of their names.
+
+
+SOL:
+
+SELECT Bookname
+FROM BOOK
+ORDER BY Bookname DESC;
+
+
+Objective b: List  the  details  of  students  who  borrowed  the  books  which  are  a ll  published  by  the  same publisher.
+
+SOL:
+
+SELECT s.USN, s.Name AS Student_Name, b.Bookname, b.Publisher
+FROM STUDENT s
+JOIN BORROW bo ON s.USN = bo.USN
+JOIN BOOK b ON bo.Bookid = b.Bookid
+WHERE b.Publisher IN (
+    SELECT DISTINCT Publisher
+    FROM BOOK
+    WHERE Bookid IN (
+        SELECT Bookid
+        FROM BORROW
+        WHERE USN = s.USN
+    )
+    GROUP BY Publisher
+    HAVING COUNT(DISTINCT Publisher) = 1
+);
+
+
+
+
